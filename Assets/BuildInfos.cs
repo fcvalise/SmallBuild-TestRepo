@@ -1,11 +1,9 @@
 #if UNITY_EDITOR
 using System;
 using System.IO;
-using Unity.VisualScripting;
+using System.Diagnostics;
 using UnityEditor;
-using UnityEditor.Build;
 using UnityEditor.Build.Reporting;
-using UnityEngine;
 
 public class BuildInfos
 {
@@ -49,18 +47,54 @@ public class BuildInfos
         return newFullPath;
     }
 
-    public static void RenameBuild(string fullPath, string shortHash, string branch)
+    public static string RenameBuild(string fullPath)
     {
+        var shortHash = Git.RetrieveCurrentCommitShorthash();
+        var branch = Git.GetCurrentBranch();
         var newFullPath = GetBuildName(fullPath, shortHash, branch);
+        var canWrite = true;
 
-        if (File.Exists(fullPath))
+        if (File.Exists(newFullPath) || Directory.Exists(newFullPath))
         {
-            File.Move(fullPath, newFullPath);
+            canWrite = EditorUtility.DisplayDialog("Override", $"Do you want to override {newFullPath} ?", "Yes", "No");
+            if (canWrite)
+            {
+                if (File.Exists(newFullPath))
+                {
+                    File.Delete(newFullPath);
+                }
+                if (Directory.Exists(newFullPath))
+                {
+                    Directory.Delete(newFullPath, true);
+                }
+            }
         }
-        else if (Directory.Exists(fullPath))
+
+        if (canWrite)
         {
-            Directory.Move(fullPath, newFullPath);
+            if (File.Exists(fullPath))
+            {
+                File.Move(fullPath, newFullPath);
+                return newFullPath;
+            }
+            else if (Directory.Exists(fullPath))
+            {
+                Directory.Move(fullPath, newFullPath);
+                return newFullPath;
+            }
         }
+        return fullPath;
+    }
+
+    public static void OpenFolder(string fullPath)
+    {
+#if UNITY_EDITOR_WIN
+        Process.Start("explorer.exe", fullPath);
+#elif UNITY_EDITOR_OSX
+        Process.Start("open", fullPath);
+#elif UNITY_EDITOR_LINUX
+        Process.Start("xdg-open", fullPath);
+#endif
     }
 }
 #endif
