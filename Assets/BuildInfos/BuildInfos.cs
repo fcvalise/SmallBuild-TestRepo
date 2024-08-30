@@ -8,32 +8,44 @@ using UnityEditor.Build.Reporting;
 public class BuildInfos
 {
     public int callbackOrder => 1;
+    public static string originProductName;
+    public static string originBundleVersion;
+    public static string originApplicationIdentifier;
 
     public static void ModifySettings(BuildReport report, string shortHash, string branch)
     {
-        var originalProductName = PlayerSettings.productName.Split('_')[0];
+        originProductName = PlayerSettings.productName;
+        originBundleVersion = PlayerSettings.bundleVersion;
+        originApplicationIdentifier = PlayerSettings.applicationIdentifier;
+
         var formattedDate = DateTime.Now.ToString("yyMMdd_HHmm");
-
-        PlayerSettings.productName = $"{originalProductName}_{branch}_{shortHash}_{formattedDate}";
+        PlayerSettings.productName = $"{originProductName}_{branch}_{shortHash}_{formattedDate}";
         PlayerSettings.bundleVersion = $"{shortHash}{branch}";
-        PlayerSettings.applicationIdentifier = $"com.{PlayerSettings.companyName}.{originalProductName}_{shortHash}_{formattedDate}";
+        PlayerSettings.applicationIdentifier = $"com.{PlayerSettings.companyName}.{originProductName}_{shortHash}_{formattedDate}";
 
-        switch (report.summary.platform)
-        {
-            case BuildTarget.StandaloneWindows64:
-            case BuildTarget.StandaloneLinux64:
-            case BuildTarget.StandaloneWindows:
-            case BuildTarget.StandaloneOSX:
-                // PlayerSettings.macOS.buildNumber = IncrementBuildNumber(PlayerSettings.macOS.buildNumber);
-                // PlayerSettings.SetApplicationIdentifier(report.summary.platform, )
-                break;
-            case BuildTarget.iOS:
-                // PlayerSettings.iOS.buildNumber = IncrementBuildNumber(PlayerSettings.iOS.buildNumber);
-                break;
-            case BuildTarget.Android:
-                // PlayerSettings.Android.bundleVersionCode++;
-                break;
-        }
+        // switch (report.summary.platform)
+        // {
+        //     case BuildTarget.StandaloneWindows64:
+        //     case BuildTarget.StandaloneLinux64:
+        //     case BuildTarget.StandaloneWindows:
+        //     case BuildTarget.StandaloneOSX:
+        //         // PlayerSettings.macOS.buildNumber = IncrementBuildNumber(PlayerSettings.macOS.buildNumber);
+        //         // PlayerSettings.SetApplicationIdentifier(report.summary.platform, )
+        //         break;
+        //     case BuildTarget.iOS:
+        //         // PlayerSettings.iOS.buildNumber = IncrementBuildNumber(PlayerSettings.iOS.buildNumber);
+        //         break;
+        //     case BuildTarget.Android:
+        //         // PlayerSettings.Android.bundleVersionCode++;
+        //         break;
+        // }
+    }
+
+    public static void ResetSettings()
+    {
+        PlayerSettings.productName = originProductName;
+        PlayerSettings.bundleVersion = originBundleVersion;
+        PlayerSettings.applicationIdentifier = originApplicationIdentifier;
     }
 
     public static string GetBuildName(string fullPath, string shortHash, string branch)

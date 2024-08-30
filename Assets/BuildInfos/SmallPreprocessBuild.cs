@@ -12,11 +12,14 @@ public class SmallPreprocessBuild : IPreprocessBuildWithReport
 
     public void OnPreprocessBuild(BuildReport report)
     {
-        var shortHash = Git.RetrieveCurrentCommitShorthash();
-        var branch = Git.GetCurrentBranch();
+        if (BuildInfoMenuItem.IsActive())
+        {
+            var shortHash = Git.RetrieveCurrentCommitShorthash();
+            var branch = Git.GetCurrentBranch();
 
-        BuildInfos.ModifySettings(report, shortHash, branch);
-        WaitForBuildCompletion(report);
+            BuildInfos.ModifySettings(report, shortHash, branch);
+            WaitForBuildCompletion(report);
+        }
     }
 
     static async void WaitForBuildCompletion(BuildReport report)
@@ -37,6 +40,7 @@ public class SmallPreprocessBuild : IPreprocessBuildWithReport
                 BuildInfos.OpenFolder(path);
                 break;
         }
+        BuildInfos.ResetSettings();
     }
 }
 #endif
